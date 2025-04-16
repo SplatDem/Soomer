@@ -30,5 +30,3 @@ Default config:
 cargo build --release
 sudo cp target/release/soomer /bin
 ```
-
-Btw, shader is not mine. It was stolen.
