@@ -7,6 +7,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::Result;
 use std::{time::Duration, fs};
 
+const _SPOTLIGHT_TINT: Color = Color::RGBA(0, 0, 0, 190); // TODO: read shader path from config or
+                                                          // use default
+
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigBgColor {
     r: u8,
@@ -61,6 +64,14 @@ impl Display {
         self.offset_x = 0.0;
         self.offset_y = 0.0;
         self.scale = 1.0;
+    }
+
+    fn reset_scale(&mut self, width: u32, height: u32) {
+	let center_x = self.texture_x + (width as f32 * self.scale) / 2.0;
+        let center_y = self.texture_y + (height as f32 * self.scale) / 2.0;
+        self.scale = 1.0;
+        self.texture_x = center_x - width as f32 / 2.0;
+        self.texture_y = center_y - height as f32 / 2.0;
     }
 }
 
@@ -203,17 +214,11 @@ fn main() -> Result<()> {
                 Event::KeyDown {
                     keycode: Some(Keycode::S), // Scale reset
                     ..
-                } => {
-                    let center_x = display.texture_x + (width as f32 * display.scale) / 2.0;
-                    let center_y = display.texture_y + (height as f32 * display.scale) / 2.0;
-                    display.scale = 1.0;
-                    display.texture_x = center_x - width as f32 / 2.0;
-                    display.texture_y = center_y - height as f32 / 2.0;
-                }
+                } => { display.reset_scale(width, height); }
                 _ => {}
             }
         }
-
+	
 	canvas.set_draw_color(Color::RGBA(config.bg.r, config.bg.g, config.bg.b, config.bg.a));
         canvas.clear();
         
