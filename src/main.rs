@@ -23,6 +23,8 @@ struct Config {
     bg: ConfigBgColor,
     max_scale: f32,
     min_scale: f32,
+    scale_factor: f32,
+    update_delay: u64,
 }
 
 struct Display {
@@ -81,6 +83,8 @@ fn load_config() -> Result<Config> {
             },
             max_scale: 10.0,
             min_scale: 0.1,
+	    scale_factor: 1.5,
+	    update_delay: 60,
         };
         
         let config_data = serde_json::to_string_pretty(&default_config)?;
@@ -176,9 +180,9 @@ fn main() -> Result<()> {
                     let old_scale = display.scale;
                     
                     if y > 0 {
-			                  display.scale = (display.scale * 1.1f32).min(config.max_scale);
+			                  display.scale = (display.scale * config.scale_factor).min(config.max_scale);
                     } else if y < 0 {
-                        display.scale = (display.scale / 1.1f32).max(config.min_scale);
+                        display.scale = (display.scale / config.scale_factor).max(config.min_scale);
                     }
                     
                     let rel_x = (display.mouse_x as f32 - display.texture_x) / old_scale;
@@ -232,6 +236,6 @@ fn main() -> Result<()> {
             .expect("ERROR: Failed to copy texture");
 
         canvas.present();
-        std::thread::sleep(Duration::from_millis(16));
+        std::thread::sleep(Duration::from_millis(config.update_delay / 4));
     }
 }
