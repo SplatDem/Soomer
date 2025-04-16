@@ -185,7 +185,7 @@ fn main() -> Result<()> {
                     let old_scale = display.scale;
                     
                     if y > 0 {
-			                  display.scale = (display.scale * config.scale.scale_factor).min(config.scale.max_scale);
+			display.scale = (display.scale * config.scale.scale_factor).min(config.scale.max_scale);
                     } else if y < 0 {
                         display.scale = (display.scale / config.scale.scale_factor).max(config.scale.min_scale);
                     }

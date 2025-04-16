@@ -20,9 +20,11 @@ Default config:
         "b": 15,
         "a": 255
     },
-    "max_scale": 10.0,
-    "min_scale": 1.0,
-    "scale_factor": 1.5,
+    "scale": {
+	"max_scale": 10.0,
+	"min_scale": 1.0,
+	"scale_factor": 1.5
+    },
     "update_delay": 60
 }
 ```
