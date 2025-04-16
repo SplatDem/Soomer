@@ -1,7 +1,7 @@
 # Soomer
 Soomer is a zoomer application for wayland written in rust.
 
-![demo.gif](demo)
+![demo](demo.gif)
 
 ## Bindings
 | Key   | Action      |
