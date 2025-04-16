@@ -7,9 +7,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::Result;
 use std::{time::Duration, fs};
 
-const _SPOTLIGHT_TINT: Color = Color::RGBA(0, 0, 0, 190); // TODO: read shader path from config or
-                                                          // use default
-
 #[derive(Debug, Deserialize, Serialize)]
 struct ConfigBgColor {
     r: u8,
@@ -19,11 +16,16 @@ struct ConfigBgColor {
 }
 
 #[derive(Serialize, Deserialize)]
-struct Config {
-    bg: ConfigBgColor,
+struct ConfigScale {
     max_scale: f32,
     min_scale: f32,
     scale_factor: f32,
+}
+
+#[derive(Serialize, Deserialize)]
+struct Config {
+    bg: ConfigBgColor,
+    scale: ConfigScale,
     update_delay: u64,
 }
 
@@ -81,9 +83,11 @@ fn load_config() -> Result<Config> {
                 b: 15,
                 a: 255,
             },
-            max_scale: 10.0,
-            min_scale: 0.1,
-	    scale_factor: 1.5,
+	    scale: ConfigScale {
+		max_scale: 10.0,
+		min_scale: 0.1,
+		scale_factor: 1.5,
+	    },
 	    update_delay: 60,
         };
         
@@ -117,6 +121,7 @@ fn main() -> Result<()> {
         .window("Soomer", width, height)
         .position_centered()
         .fullscreen()
+	      .allow_highdpi()
         .build()
         .expect("ERROR: Failed to create window");
 
@@ -180,9 +185,9 @@ fn main() -> Result<()> {
                     let old_scale = display.scale;
                     
                     if y > 0 {
-			                  display.scale = (display.scale * config.scale_factor).min(config.max_scale);
+			                  display.scale = (display.scale * config.scale.scale_factor).min(config.scale.max_scale);
                     } else if y < 0 {
-                        display.scale = (display.scale / config.scale_factor).max(config.min_scale);
+                        display.scale = (display.scale / config.scale.scale_factor).max(config.scale.min_scale);
                     }
                     
                     let rel_x = (display.mouse_x as f32 - display.texture_x) / old_scale;
