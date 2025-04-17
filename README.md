@@ -1,3 +1,8 @@
+> [!WARNING]
+> This program in the early stage of development
+> Some features may not work
+> Also there is a bug that prevents the program from being used in some DEs or compositors
+
 # Soomer
 Soomer is a zoomer application for wayland written in rust.
 
@@ -35,3 +40,7 @@ Default config:
 cargo build --release
 sudo cp target/release/soomer /bin
 ```
+
+This program uses ZwlrScreencopy Manager, so it will not work in some DEs or compositors
+![protocol](protocol.jpg)
+Image from https://wayland.app/protocols/wlr-screencopy-unstable-v1
