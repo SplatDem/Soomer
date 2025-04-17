@@ -7,10 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Result;
 use std::{time::Duration, fs};
 
-const _SPOTLIGHT_TINT: Color = Color::RGBA(0, 0, 0, 190); // TODO: read shader path from config or
-                                                          // use default
-
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Deserialize, Serialize)]
 struct ConfigBgColor {
     r: u8,
     g: u8,
@@ -20,9 +17,9 @@ struct ConfigBgColor {
 
 #[derive(Serialize, Deserialize)]
 struct ConfigScale {
-    max_scale: f32,
-    min_scale: f32,
-    scale_factor: f32,
+    max: f32,
+    min: f32,
+    factor: f32,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -95,9 +92,9 @@ fn load_config() -> Result<Config> {
                 a: 255,
             },
 	    scale: ConfigScale {
-		max_scale: 10.0,
-		min_scale: 0.1,
-		scale_factor: 1.5,
+		max: 10.0,
+		min: 0.1,
+		factor: 1.5,
 	    },
 	    update_delay: 60,
         };
@@ -158,7 +155,13 @@ fn main() -> Result<()> {
 
     let mut events = sdl_context.event_pump().unwrap();
     
-    let config = load_config().expect("ERROR: Failed to load config");
+    let config = match load_config() {
+	Ok(config) => config,
+	Err(e) => {
+	    println!("ERROR: Failed to load config: {}", e);
+	    std::process::exit(1);
+	}
+    };
     
     let mut display = Display::new();
     
@@ -196,9 +199,9 @@ fn main() -> Result<()> {
                     let old_scale = display.scale;
                     
                     if y > 0 {
-			display.scale = (display.scale * config.scale.scale_factor).min(config.scale.max_scale);
+			display.scale = (display.scale * config.scale.factor).min(config.scale.max);
                     } else if y < 0 {
-                        display.scale = (display.scale / config.scale.scale_factor).max(config.scale.min_scale);
+                        display.scale = (display.scale / config.scale.factor).max(config.scale.min);
                     }
                     
                     let rel_x = (display.mouse_x as f32 - display.texture_x) / old_scale;
