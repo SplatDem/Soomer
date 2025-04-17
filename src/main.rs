@@ -84,10 +84,9 @@ impl Display {
     }
 
     fn smooth_update(&mut self, smooth_factor: f32) {
-        let smoothness = smooth_factor;
-        self.scale = lerp(self.scale, self.target_scale, smoothness);
-        self.texture_x = lerp(self.texture_x, self.target_texture_x, smoothness);
-        self.texture_y = lerp(self.texture_y, self.target_texture_y, smoothness);
+        self.scale = lerp(self.scale, self.target_scale, smooth_factor);
+        self.texture_x = lerp(self.texture_x, self.target_texture_x, smooth_factor);
+        self.texture_y = lerp(self.texture_y, self.target_texture_y, smooth_factor);
     }
 }
 

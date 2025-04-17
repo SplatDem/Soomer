@@ -1,8 +1,3 @@
-> [!WARNING]
-> This program in the early stage of development.
-> Some features may not work.
-> Also there is a bug that prevents the program from being used in some DEs or compositors.
-
 # Soomer
 Soomer is a zoomer application for wayland written in rust.
 
@@ -28,7 +23,7 @@ Default config:
     "scale": {
         "max": 10.0,
         "min": 1.0,
-        "factor": 1.5
+        "factor": 1.1
     },
     "update_delay": 60,
     "smooth_factor": 0.1
