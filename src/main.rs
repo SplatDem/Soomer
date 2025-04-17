@@ -62,17 +62,7 @@ impl Display {
     }
 
     fn reset(&mut self) {
-        self.texture_x = 0.0;
-        self.texture_y = 0.0;
-        self.target_texture_x = 0.0;
-        self.target_texture_y = 0.0;
-        self.dragging = false;
-        self.offset_x = 0.0;
-        self.offset_y = 0.0;
-        self.scale = 1.0;
-        self.target_scale = 1.0;
-        self.mouse_x = 0;
-        self.mouse_y = 0;
+         *self = Self::new();
     }
 
     fn reset_scale(&mut self, width: u32, height: u32) {
@@ -119,10 +109,10 @@ fn load_config() -> Result<Config> {
             scale: ConfigScale {
                 max: 10.0,
                 min: 0.1,
-                factor: 1.5,
+                factor: 1.1,
             },
             update_delay: 60,
-            smooth_factor: 0.1,
+            smooth_factor: 0.15,
         };
 
         let config_data = serde_json::to_string_pretty(&default_config)?;

@@ -26,7 +26,7 @@ Default config:
         "factor": 1.1
     },
     "update_delay": 60,
-    "smooth_factor": 0.1
+    "smooth_factor": 0.15
 }
 ```
 
