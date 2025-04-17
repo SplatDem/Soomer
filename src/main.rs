@@ -5,7 +5,7 @@ use sdl2::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Result;
-use std::{time::Duration, fs};
+use std::{fs, time::Duration};
 
 #[derive(Deserialize, Serialize)]
 struct ConfigBgColor {
@@ -26,50 +26,73 @@ struct ConfigScale {
 struct Config {
     bg: ConfigBgColor,
     scale: ConfigScale,
+    smooth_factor: f32,
     update_delay: u64,
 }
 
 struct Display {
     texture_x: f32,
     texture_y: f32,
+    target_texture_x: f32,
+    target_texture_y: f32,
     dragging: bool,
     offset_x: f32,
     offset_y: f32,
     scale: f32,
+    target_scale: f32,
     mouse_x: i32,
     mouse_y: i32,
 }
 
 impl Display {
     fn new() -> Self {
-	Display {
-	    texture_x: 0.0,
-	    texture_y: 0.0,
-	    dragging: false,
-	    offset_x: 0.0,
-	    offset_y: 0.0,
-	    scale: 1.0,
-	    mouse_x: 0,
-	    mouse_y: 0,
-	}
+        Display {
+            texture_x: 0.0,
+            texture_y: 0.0,
+            target_texture_x: 0.0,
+            target_texture_y: 0.0,
+            dragging: false,
+            offset_x: 0.0,
+            offset_y: 0.0,
+            scale: 1.0,
+            target_scale: 1.0,
+            mouse_x: 0,
+            mouse_y: 0,
+        }
     }
 
     fn reset(&mut self) {
-	self.texture_x = 0.0;
+        self.texture_x = 0.0;
         self.texture_y = 0.0;
+        self.target_texture_x = 0.0;
+        self.target_texture_y = 0.0;
         self.dragging = false;
         self.offset_x = 0.0;
         self.offset_y = 0.0;
         self.scale = 1.0;
+        self.target_scale = 1.0;
+        self.mouse_x = 0;
+        self.mouse_y = 0;
     }
 
     fn reset_scale(&mut self, width: u32, height: u32) {
-	let center_x = self.texture_x + (width as f32 * self.scale) / 2.0;
-        let center_y = self.texture_y + (height as f32 * self.scale) / 2.0;
-        self.scale = 1.0;
-        self.texture_x = center_x - width as f32 / 2.0;
-        self.texture_y = center_y - height as f32 / 2.0;
+        let center_x = self.target_texture_x + (width as f32 * self.scale) / 2.0;
+        let center_y = self.target_texture_y + (height as f32 * self.scale) / 2.0;
+        self.target_scale = 1.0;
+        self.target_texture_x = center_x - width as f32 / 2.0;
+        self.target_texture_y = center_y - height as f32 / 2.0;
     }
+
+    fn smooth_update(&mut self, smooth_factor: f32) {
+        let smoothness = smooth_factor;
+        self.scale = lerp(self.scale, self.target_scale, smoothness);
+        self.texture_x = lerp(self.texture_x, self.target_texture_x, smoothness);
+        self.texture_y = lerp(self.texture_y, self.target_texture_y, smoothness);
+    }
+}
+
+fn lerp(a: f32, b: f32, t: f32) -> f32 {
+    a + (b - a) * t
 }
 
 fn load_config() -> Result<Config> {
@@ -77,13 +100,16 @@ fn load_config() -> Result<Config> {
     config_path.push(".config/soomer/config.json");
 
     if !config_path.exists() {
-        eprintln!("WARNING: Config not found at {}", config_path.display());
-        println!("NOTE: Creating default config at {}...", config_path.display());
-        
+        println!("WARNING: Config not found at {}", config_path.display());
+        println!(
+            "NOTE: Creating default config at {}...",
+            config_path.display()
+        );
+
         if let Some(parent) = config_path.parent() {
             fs::create_dir_all(parent).expect("ERROR: Failed to create parent directories");
         }
-        
+
         let default_config = Config {
             bg: ConfigBgColor {
                 r: 10,
@@ -91,20 +117,21 @@ fn load_config() -> Result<Config> {
                 b: 15,
                 a: 255,
             },
-	    scale: ConfigScale {
-		max: 10.0,
-		min: 0.1,
-		factor: 1.5,
-	    },
-	    update_delay: 60,
+            scale: ConfigScale {
+                max: 10.0,
+                min: 0.1,
+                factor: 1.5,
+            },
+            update_delay: 60,
+            smooth_factor: 0.1,
         };
-        
+
         let config_data = serde_json::to_string_pretty(&default_config)?;
         fs::write(&config_path, config_data).expect("ERROR: Failed to write config data");
-        
+
         println!("NOTE: Default config written at {}", config_path.display());
     }
-    
+
     let config_data = fs::read_to_string(&config_path).expect("ERROR: Failed to load config data");
     let config: Config = serde_json::from_str(&config_data)?;
 
@@ -129,7 +156,7 @@ fn main() -> Result<()> {
         .window("Soomer", width, height)
         .position_centered()
         .fullscreen()
-	      .allow_highdpi()
+        .allow_highdpi()
         .build()
         .expect("ERROR: Failed to create window");
 
@@ -142,7 +169,7 @@ fn main() -> Result<()> {
 
     let mut surface =
         sdl2::surface::Surface::new(width, height, sdl2::pixels::PixelFormatEnum::RGBA32)
-        .expect("ERROR: Failed to create surface");
+            .expect("ERROR: Failed to create surface");
 
     surface.with_lock_mut(|pixels| {
         let image_data = screenshot_image.as_raw();
@@ -154,17 +181,17 @@ fn main() -> Result<()> {
         .expect("ERROR: Failed to create texture");
 
     let mut events = sdl_context.event_pump().unwrap();
-    
+
     let config = match load_config() {
-	Ok(config) => config,
-	Err(e) => {
-	    println!("ERROR: Failed to load config: {}", e);
-	    std::process::exit(1);
-	}
+        Ok(config) => config,
+        Err(e) => {
+            println!("ERROR: Failed to load config: {}", e);
+            std::process::exit(1);
+        }
     };
-    
+
     let mut display = Display::new();
-    
+
     'running: loop {
         for event in events.poll_iter() {
             match event {
@@ -191,50 +218,58 @@ fn main() -> Result<()> {
                     display.mouse_x = x;
                     display.mouse_y = y;
                     if display.dragging {
-                        display.texture_x = x as f32 - display.offset_x;
-                        display.texture_y = y as f32 - display.offset_y;
+                        display.target_texture_x = x as f32 - display.offset_x;
+                        display.target_texture_y = y as f32 - display.offset_y;
                     }
                 }
                 Event::MouseWheel { y, .. } => {
-                    let old_scale = display.scale;
-                    
+                    let mouse_x = display.mouse_x as f32;
+                    let mouse_y = display.mouse_y as f32;
+
+                    let old_rel_x = (mouse_x - display.target_texture_x) / display.target_scale;
+                    let old_rel_y = (mouse_y - display.target_texture_y) / display.target_scale;
+
                     if y > 0 {
-			display.scale = (display.scale * config.scale.factor).min(config.scale.max);
+                        display.target_scale *= config.scale.factor;
                     } else if y < 0 {
-                        display.scale = (display.scale / config.scale.factor).max(config.scale.min);
+                        display.target_scale /= config.scale.factor;
                     }
-                    
-                    let rel_x = (display.mouse_x as f32 - display.texture_x) / old_scale;
-                    let rel_y = (display.mouse_y as f32 - display.texture_y) / old_scale;
-                    
-                    display.texture_x = display.mouse_x as f32 - rel_x * display.scale;
-                    display.texture_y = display.mouse_y as f32 - rel_y * display.scale;
+                    display.target_scale = display
+                        .target_scale
+                        .clamp(config.scale.min, config.scale.max);
+
+                    display.target_texture_x = mouse_x - old_rel_x * display.target_scale;
+                    display.target_texture_y = mouse_y - old_rel_y * display.target_scale;
                 }
                 Event::KeyDown {
                     keycode: Some(Keycode::R), // Reset
                     ..
-                } => { display.reset(); }
+                } => {
+                    display.reset();
+                }
                 Event::KeyDown {
                     keycode: Some(Keycode::S), // Scale reset
                     ..
-                } => { display.reset_scale(width, height); }
+                } => {
+                    display.reset_scale(width, height);
+                }
                 _ => {}
             }
         }
-	
-	canvas.set_draw_color(Color::RGBA(config.bg.r, config.bg.g, config.bg.b, config.bg.a));
+
+        display.smooth_update(config.smooth_factor);
+
+        canvas.set_draw_color(Color::RGBA(
+            config.bg.r,
+            config.bg.g,
+            config.bg.b,
+            config.bg.a,
+        ));
         canvas.clear();
-        
+
         let tex_width = (width as f32 * display.scale) as u32;
         let tex_height = (height as f32 * display.scale) as u32;
-        
-        if tex_width < width {
-            display.texture_x = (width as f32 - tex_width as f32) / 2.0;
-        }
-        if tex_height < height {
-            display.texture_y = (height as f32 - tex_height as f32) / 2.0;
-        }
-        
+
         canvas
             .copy(
                 &texture,
