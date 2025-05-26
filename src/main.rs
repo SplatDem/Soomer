@@ -1,11 +1,13 @@
 use libwayshot::WayshotConnection;
+use image::{RgbaImage, ImageBuffer};
 use sdl2::{
     event::Event, keyboard::Keycode, mouse::MouseButton, pixels::Color, rect::Rect,
     render::TextureCreator, video::WindowContext,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Result;
-use std::{fs, time::Duration};
+use std::fs;
+use std::time::{Duration, self};
 
 #[derive(Deserialize, Serialize)]
 struct ConfigBgColor {
@@ -28,6 +30,8 @@ struct Config {
     scale: ConfigScale,
     smooth_factor: f32,
     update_delay: u64,
+    screenshot_save_path: String,
+    screenshot_save_name: String,
 }
 
 struct Display {
@@ -78,6 +82,14 @@ impl Display {
         self.texture_x = lerp(self.texture_x, self.target_texture_x, smooth_factor);
         self.texture_y = lerp(self.texture_y, self.target_texture_y, smooth_factor);
     }
+
+    fn save_screenshot(&mut self, image_to_save: RgbaImage, save_path: &str, save_name: &str) {
+        let save_path = format!("{}/smr_{:?}_{}",
+            save_path,
+            time::SystemTime::now().duration_since(time::UNIX_EPOCH).expect("ERROR: You've made a fucking time machine"),
+            save_name);
+        image_to_save.save(save_path).expect("ERROR: Failed to save screenshot");
+    }
 }
 
 fn lerp(a: f32, b: f32, t: f32) -> f32 {
@@ -113,6 +125,8 @@ fn load_config() -> Result<Config> {
             },
             update_delay: 60,
             smooth_factor: 0.15,
+            screenshot_save_path: "./".to_string(),
+            screenshot_save_name: "screenshot.png".to_string()
         };
 
         let config_data = serde_json::to_string_pretty(&default_config)?;
@@ -237,10 +251,31 @@ fn main() -> Result<()> {
                     display.reset();
                 }
                 Event::KeyDown {
-                    keycode: Some(Keycode::S), // Scale reset
+                    keycode: Some(Keycode::C), // Scale reset
                     ..
                 } => {
                     display.reset_scale(width, height);
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::S),
+                    ..
+                } => {
+                    let img_to_save: RgbaImage = ImageBuffer::from_raw(width, height, 
+                        screenshot_image.clone().into_raw()).unwrap();
+                    display.save_screenshot(img_to_save, &config.screenshot_save_path, &config.screenshot_save_name);
+
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::E),
+                    ..
+                } => {
+                    let new_screenshot_image = wayshot_connection
+                        .screenshot_all(false)
+                        .expect("ERROR: failed to take a screenshot")
+                        .to_rgba8();
+                    let (new_width, new_height) = screenshot_image.dimensions();
+                    let img_to_save: RgbaImage = ImageBuffer::from_raw(new_width, new_height, new_screenshot_image.into_raw()).unwrap();
+                    display.save_screenshot(img_to_save, &config.screenshot_save_path, &config.screenshot_save_name);
                 }
                 _ => {}
             }
