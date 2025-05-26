@@ -4,11 +4,13 @@ Soomer is a zoomer application for wayland written in rust.
 ![demo](demo.gif)
 
 ## Bindings
-| Key   | Action      |
-|-------|-------------|
-| `ESC` | Quit        |
-| `S`   | Reset scale |
-| `R`   | Reset all   |
+| Key     | Action          |
+|---------|-----------------|
+| `ESC/Q` | Quit            |
+|   `S`   | Save screenshot |
+|   `E`   | Save rigeon     |
+|   `C`   | Reset scale     |
+|   `R`   | Reset all       |
 
 ## Configuration
 Default config:
@@ -27,6 +29,9 @@ Default config:
     },
     "update_delay": 60,
     "smooth_factor": 0.15
+    "screenshot_save_path": "./",
+    "screenshot_save_name": "screenshot.png" // This will transform into something like
+                                             // ./smr_174542535.13243545_screenshot.png
 }
 ```
 

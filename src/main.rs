@@ -201,8 +201,11 @@ fn main() -> Result<()> {
                 Event::KeyDown {
                     keycode: Some(Keycode::Escape),
                     ..
-                }
-                | Event::Quit { .. } => break 'running Ok(()),
+                } => break 'running Ok(()),
+                Event::KeyDown {
+                    keycode: Some(Keycode::Q),
+                    ..
+                } => break 'running Ok(()),
                 Event::MouseButtonDown {
                     mouse_btn, x, y, ..
                 } => {
