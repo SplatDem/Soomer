@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-image = { version = "0.25.5", features = ["png"] }
+image = "0.25.5"
 libwayshot = { git = "https://github.com/waycrate/wayshot", branch = "freeze-feat-andreas" }
 sdl2 = "0.37.0"
 serde = { version = "1.0.219", features = ["derive"] }

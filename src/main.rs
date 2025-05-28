@@ -1,5 +1,5 @@
+use image::{ImageBuffer, RgbaImage};
 use libwayshot::WayshotConnection;
-use image::{RgbaImage, ImageBuffer};
 use sdl2::{
     event::Event, keyboard::Keycode, mouse::MouseButton, pixels::Color, rect::Rect,
     render::TextureCreator, video::WindowContext,
@@ -7,7 +7,7 @@ use sdl2::{
 use serde::{Deserialize, Serialize};
 use serde_json::Result;
 use std::fs;
-use std::time::{Duration, self};
+use std::time::{self, Duration};
 
 #[derive(Deserialize, Serialize)]
 struct ConfigBgColor {
@@ -66,7 +66,7 @@ impl Display {
     }
 
     fn reset(&mut self) {
-         *self = Self::new();
+        *self = Self::new();
     }
 
     fn reset_scale(&mut self, width: u32, height: u32) {
@@ -84,11 +84,17 @@ impl Display {
     }
 
     fn save_screenshot(&mut self, image_to_save: RgbaImage, save_path: &str, save_name: &str) {
-        let save_path = format!("{}/smr_{:?}_{}",
+        let save_path = format!(
+            "{}/smr_{:?}_{}",
             save_path,
-            time::SystemTime::now().duration_since(time::UNIX_EPOCH).expect("ERROR: You've made a fucking time machine"),
-            save_name);
-        image_to_save.save(save_path).expect("ERROR: Failed to save screenshot");
+            time::SystemTime::now()
+                .duration_since(time::UNIX_EPOCH)
+                .expect("ERROR: You've made a fucking time machine"),
+            save_name
+        );
+        image_to_save
+            .save(save_path)
+            .expect("ERROR: Failed to save screenshot");
     }
 }
 
@@ -98,7 +104,7 @@ fn lerp(a: f32, b: f32, t: f32) -> f32 {
 
 fn load_config() -> Result<Config> {
     let mut config_path = std::path::PathBuf::from(std::env::var("HOME").unwrap());
-    config_path.push(".config/soomer/config.json");
+    config_path.push(".config/soomer.json");
 
     if !config_path.exists() {
         println!("WARNING: Config not found at {}", config_path.display());
@@ -126,7 +132,7 @@ fn load_config() -> Result<Config> {
             update_delay: 60,
             smooth_factor: 0.15,
             screenshot_save_path: "./".to_string(),
-            screenshot_save_name: "screenshot.png".to_string()
+            screenshot_save_name: "screenshot.png".to_string(),
         };
 
         let config_data = serde_json::to_string_pretty(&default_config)?;
@@ -159,6 +165,7 @@ fn main() -> Result<()> {
         .window("Soomer", width, height)
         .position_centered()
         .fullscreen()
+        .always_on_top()
         .allow_highdpi()
         .build()
         .expect("ERROR: Failed to create window");
@@ -263,10 +270,14 @@ fn main() -> Result<()> {
                     keycode: Some(Keycode::S),
                     ..
                 } => {
-                    let img_to_save: RgbaImage = ImageBuffer::from_raw(width, height, 
-                        screenshot_image.clone().into_raw()).unwrap();
-                    display.save_screenshot(img_to_save, &config.screenshot_save_path, &config.screenshot_save_name);
-
+                    let img_to_save: RgbaImage =
+                        ImageBuffer::from_raw(width, height, screenshot_image.clone().into_raw())
+                            .unwrap();
+                    display.save_screenshot(
+                        img_to_save,
+                        &config.screenshot_save_path,
+                        &config.screenshot_save_name,
+                    );
                 }
                 Event::KeyDown {
                     keycode: Some(Keycode::E),
@@ -277,8 +288,17 @@ fn main() -> Result<()> {
                         .expect("ERROR: failed to take a screenshot")
                         .to_rgba8();
                     let (new_width, new_height) = screenshot_image.dimensions();
-                    let img_to_save: RgbaImage = ImageBuffer::from_raw(new_width, new_height, new_screenshot_image.into_raw()).unwrap();
-                    display.save_screenshot(img_to_save, &config.screenshot_save_path, &config.screenshot_save_name);
+                    let img_to_save: RgbaImage = ImageBuffer::from_raw(
+                        new_width,
+                        new_height,
+                        new_screenshot_image.into_raw(),
+                    )
+                    .unwrap();
+                    display.save_screenshot(
+                        img_to_save,
+                        &config.screenshot_save_path,
+                        &config.screenshot_save_name,
+                    );
                 }
                 _ => {}
             }
