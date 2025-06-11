@@ -8,7 +8,7 @@ Soomer is a zoomer application for wayland written in rust.
 |---------|-----------------|
 | `ESC/Q` | Quit            |
 |   `S`   | Save screenshot |
-|   `E`   | Save rigeon     |
+|   `E`   | Save region     |
 |   `C`   | Reset scale     |
 |   `R`   | Reset all       |
 
