@@ -28,7 +28,8 @@ Default config:
         "factor": 1.1
     },
     "update_delay": 60,
-    "smooth_factor": 0.15
+    "smooth_factor": 0.15,
+    "monitor": 0,
     "screenshot_save_path": "./",
     "screenshot_save_name": "screenshot.png" // This will transform into something like
                                              // ./smr_174542535.13243545_screenshot.png

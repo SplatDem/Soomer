@@ -30,6 +30,7 @@ struct Config {
     scale: ConfigScale,
     smooth_factor: f32,
     update_delay: u64,
+    monitor: usize,
     screenshot_save_path: String,
     screenshot_save_name: String,
 }
@@ -131,6 +132,7 @@ fn load_config() -> Result<Config> {
             },
             update_delay: 60,
             smooth_factor: 0.15,
+            monitor: 0,
             screenshot_save_path: "./".to_string(),
             screenshot_save_name: "screenshot.png".to_string(),
         };
@@ -148,10 +150,22 @@ fn load_config() -> Result<Config> {
 }
 
 fn main() -> Result<()> {
+    let config = match load_config() {
+        Ok(config) => config,
+        Err(e) => {
+            println!("ERROR: Failed to load config: {}", e);
+            std::process::exit(1);
+        }
+    };
+
     let wayshot_connection =
         WayshotConnection::new().expect("ERROR: failed to connect to the wayland display server");
+
+    let outputs_info = WayshotConnection::get_all_outputs(&wayshot_connection);
+    
     let screenshot_image = wayshot_connection
-        .screenshot_all(false)
+        // .screenshot_all(false)
+	.screenshot_single_output(&outputs_info[config.monitor], true)
         .expect("ERROR: failed to take a screenshot")
         .to_rgba8();
     let (width, height) = screenshot_image.dimensions();
@@ -191,14 +205,6 @@ fn main() -> Result<()> {
         .expect("ERROR: Failed to create texture");
 
     let mut events = sdl_context.event_pump().unwrap();
-
-    let config = match load_config() {
-        Ok(config) => config,
-        Err(e) => {
-            println!("ERROR: Failed to load config: {}", e);
-            std::process::exit(1);
-        }
-    };
 
     let mut display = Display::new();
 
