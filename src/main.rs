@@ -164,7 +164,6 @@ fn main() -> Result<()> {
     let outputs_info = WayshotConnection::get_all_outputs(&wayshot_connection);
     
     let screenshot_image = wayshot_connection
-        // .screenshot_all(false)
 	.screenshot_single_output(&outputs_info[config.monitor], true)
         .expect("ERROR: failed to take a screenshot")
         .to_rgba8();
@@ -290,7 +289,7 @@ fn main() -> Result<()> {
                     ..
                 } => {
                     let new_screenshot_image = wayshot_connection
-                        .screenshot_all(false)
+                        .screenshot_single_output(&outputs_info[config.monitor], true)
                         .expect("ERROR: failed to take a screenshot")
                         .to_rgba8();
                     let (new_width, new_height) = screenshot_image.dimensions();
