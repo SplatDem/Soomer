@@ -103,9 +103,7 @@ fn lerp(a: f32, b: f32, t: f32) -> f32 {
     a + (b - a) * t
 }
 
-fn load_config() -> Result<Config> {
-    let mut config_path = std::path::PathBuf::from(std::env::var("HOME").unwrap());
-    config_path.push(".config/soomer.json");
+fn load_config(config_path: std::path::PathBuf) -> Result<Config> {
 
     if !config_path.exists() {
         println!("WARNING: Config not found at {}", config_path.display());
@@ -150,7 +148,29 @@ fn load_config() -> Result<Config> {
 }
 
 fn main() -> Result<()> {
-    let config = match load_config() {
+    let args: Vec<String> = std::env::args().collect();
+
+    let mut config_path = std::path::PathBuf::from(std::env::var("HOME").unwrap());
+    config_path.push(".config/soomer.json");
+
+    if args.len() > 1 {
+        if args[1] == "-cfg" || args[1] == "--config" {
+            if args.len() < 3 {
+                println!("No config path given");
+                std::process::exit(1);
+            } else {
+                config_path = args[2].clone().into();
+            }
+        } else if args[1] == "-hk" || args[1] == "--hotkeys" {
+            println!("ESC/Q - Quit\nS - Save entire screen as image\nE - Save region as image\nC - Reset scale\nR - Full reset");
+            std::process::exit(0);
+        } else if args[1] == "-h" || args[1] == "?" || args[1] == "--help" {
+            println!("Arguments:\n\t--config  | -cfg -> Load custom config path\n\t--hotkeys | -hk -> Hot key list");
+            std::process::exit(0);
+        }
+    }
+
+    let config = match load_config(config_path) {
         Ok(config) => config,
         Err(e) => {
             println!("ERROR: Failed to load config: {}", e);
@@ -164,7 +184,8 @@ fn main() -> Result<()> {
     let outputs_info = WayshotConnection::get_all_outputs(&wayshot_connection);
     
     let screenshot_image = wayshot_connection
-	.screenshot_single_output(&outputs_info[config.monitor], true)
+        // .screenshot_all(false)
+	      .screenshot_single_output(&outputs_info[config.monitor], true)
         .expect("ERROR: failed to take a screenshot")
         .to_rgba8();
     let (width, height) = screenshot_image.dimensions();
@@ -289,6 +310,7 @@ fn main() -> Result<()> {
                     ..
                 } => {
                     let new_screenshot_image = wayshot_connection
+                        // .screenshot_all(false) // COMMMMMM
                         .screenshot_single_output(&outputs_info[config.monitor], true)
                         .expect("ERROR: failed to take a screenshot")
                         .to_rgba8();
