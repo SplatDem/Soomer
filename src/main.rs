@@ -182,9 +182,8 @@ fn main() -> Result<()> {
         WayshotConnection::new().expect("ERROR: failed to connect to the wayland display server");
 
     let outputs_info = WayshotConnection::get_all_outputs(&wayshot_connection);
-    
+
     let screenshot_image = wayshot_connection
-        // .screenshot_all(false)
 	      .screenshot_single_output(&outputs_info[config.monitor], true)
         .expect("ERROR: failed to take a screenshot")
         .to_rgba8();
@@ -199,6 +198,7 @@ fn main() -> Result<()> {
         .window("Soomer", width, height)
         .position_centered()
         .fullscreen()
+        .fullscreen_desktop()
         .always_on_top()
         .allow_highdpi()
         .build()
@@ -361,3 +361,4 @@ fn main() -> Result<()> {
         std::thread::sleep(Duration::from_millis(config.update_delay / 4));
     }
 }
+
