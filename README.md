@@ -43,6 +43,6 @@ sudo cp target/release/soomer /bin
 ```
 
 #### And again!
-This program uses ZwlrScreencopy Manager, which is implemented only in wlroots.
+This program uses ZwlrScreencopy Manager, which is not implemented everywhere.
 ![protocol](protocol.jpg)
 Image from https://wayland.app/protocols/wlr-screencopy-unstable-v1
