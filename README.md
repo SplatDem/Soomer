@@ -1,5 +1,5 @@
 # Soomer
-Soomer is a zoomer application for wayland written in rust.
+Soomer is a zoomer application for wlroots written in rust.
 
 ![demo](demo.gif)
 
@@ -42,6 +42,7 @@ cargo build --release
 sudo cp target/release/soomer /bin
 ```
 
-This program uses ZwlrScreencopy Manager, so it will not work in some DEs or compositors
+#### And again!
+This program uses ZwlrScreencopy Manager, which is implemented only in wlroots.
 ![protocol](protocol.jpg)
 Image from https://wayland.app/protocols/wlr-screencopy-unstable-v1
