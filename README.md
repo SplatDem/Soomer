@@ -1,7 +1,10 @@
 # Soomer
-Soomer is a zoomer application for wlroots written in rust.
+Soomer is a zoomer application for wlroots and (maybe other wayland backends) written in rust... But maybe Ill rewrite the program in C because C ROCKS and rust SUCKS (joke).
 
 ![demo](demo.gif)
+
+> [!NOTE]
+> Tested in sway and niri.
 
 ## Bindings
 | Key     | Action          |
