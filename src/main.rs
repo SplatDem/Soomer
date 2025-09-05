@@ -162,10 +162,19 @@ fn main() -> Result<()> {
                 config_path = args[2].clone().into();
             }
         } else if args[1] == "-hk" || args[1] == "--hotkeys" {
-            println!("ESC/Q - Quit\nS - Save entire screen as image\nE - Save region as image\nC - Reset scale\nR - Full reset");
+            println!("ESC/Q - Quit
+S - Save entire screen as image
+E - Save region as image
+O - Save an image from all monitors
+C - Reset scale
+R - Full reset"
+            );
             std::process::exit(0);
         } else if args[1] == "-h" || args[1] == "?" || args[1] == "--help" {
-            println!("Arguments:\n\t--config  | -cfg -> Load custom config path\n\t--hotkeys | -hk -> Hot key list");
+            println!("Arguments:
+            --config  | -cfg -> Load custom config path
+            --hotkeys | -hk  -> Hot key list"
+            );
             std::process::exit(0);
         }
     }
@@ -197,7 +206,6 @@ fn main() -> Result<()> {
     let window = video_subsystem
         .window("Soomer", width, height)
         .position_centered()
-        .fullscreen()
         .fullscreen_desktop()
         .always_on_top()
         .allow_highdpi()
@@ -306,11 +314,31 @@ fn main() -> Result<()> {
                     );
                 }
                 Event::KeyDown {
+                    keycode: Some(Keycode::O),
+                    ..
+                } => {
+                     let new_screenshot_image = wayshot_connection
+                         .screenshot_all(false)
+                         .expect("Failed to screenshot all monitors")
+                        .to_rgba8();
+                    let (new_width, new_height) = screenshot_image.dimensions();
+                    let img_to_save: RgbaImage = ImageBuffer::from_raw(
+                        new_width,
+                        new_height,
+                        new_screenshot_image.into_raw(),
+                    )
+                    .unwrap();
+                    display.save_screenshot(
+                        img_to_save,
+                        &config.screenshot_save_path,
+                        &config.screenshot_save_name,
+                    );                   
+                }
+                Event::KeyDown {
                     keycode: Some(Keycode::E),
                     ..
                 } => {
                     let new_screenshot_image = wayshot_connection
-                        // .screenshot_all(false) // COMMMMMM
                         .screenshot_single_output(&outputs_info[config.monitor], true)
                         .expect("ERROR: failed to take a screenshot")
                         .to_rgba8();
@@ -361,4 +389,3 @@ fn main() -> Result<()> {
         std::thread::sleep(Duration::from_millis(config.update_delay / 4));
     }
 }
-
